@@ -1,24 +1,26 @@
 <?php
 session_start();
-if (isset($_SESSION["user_id"]) || $_SESSION["user_role"] !== 'admin'){
-    $_SESSION['login_eror'] = 'anda harus login sebagi admin.';
-    header('location: ../login.php');
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    $_SESSION['login_error'] = 'Anda harus login sebagai admin.';
+    header('Location: ../login.php');
     exit;
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dashboard admin</title>
+    <meta charset="utf-8">
+    <title>Dashboard Admin</title>
 </head>
+
 <body>
-    <h2>halo,<?=htmlspecialchars($_SESSION['user_name'])?> </h2>
+    <h2>Halo, <?= htmlspecialchars($_SESSION['user_name']) ?></h2>
     <ul>
-        <li><a href="tambah_user.php">tambah peserta</a></li>
-        <li><a href="kelola_user.php">kelola pengguna</a></li>
-        <li><a href="../logout.php">logout</a></li>
+        <li><a href="tambah_user.php">Tambah Peserta</a></li>
+        <li><a href="kelola.php">Kelola Pengguna</a></li>
+        <li><a href="./logout.php">Logout</a></li>
     </ul>
 </body>
+
 </html>

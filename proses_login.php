@@ -1,62 +1,63 @@
 <?php
 session_start();
-require_once __DIR__ ."/koneksi.php";
+require_once __DIR__ . '/koneksi.php';
 
-//untuk cek beneran menggunakan post?
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $_SESSION['login_eror'] = 'metode ini tidak diperbohlekan';
-    header('location: login.php');
+// Pastikan lewat POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $_SESSION['login_error'] = 'Metode tidak diperbolehkan.';
+    header('Location: login.php');
     exit;
 }
 
-//ambil data email dan pasword pada database
+// Ambil input
 $email = trim($_POST['email'] ?? '');
-$password = ($_POST['password'] ??'');
+$password = $_POST['password'] ?? '';
 
-//cek apakah kosong atau tidak
-if($email === '' || $password === '' ){
-    $_SESSION['login_eror'] = 'email dan password harus diisi';
+// Validasi sederhana
+if ($email === '' || $password === '') {
+    $_SESSION['login_error'] = 'Email dan password harus diisi.';
+    header('Location: login.php');
     exit;
 }
 
-
-//proses atau persiapan untuk megirim ke database
-$sql = 'SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1';
-$stmt =$mysqli->prepare($sql);
-if(!$sql){
-    $_SESSION['login_eror'] = 'kesalahan server (prepare)';
-    header('location: login.php');
+// Prepare query
+$sql = "SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1";
+$stmt = $mysqli->prepare($sql);
+if (!$stmt) {
+    $_SESSION['login_error'] = 'Kesalahan server (prepare).';
+    header('Location: login.php');
     exit;
 }
 
-$stmt->bind_param('s', $email);
+$stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
-$final = $result->fetch_assoc();
+$user = $result->fetch_assoc();
 
-//cek apakah emailnya beneran ada
-if(!$final){
-    $_SESSION['login_eror'] = 'email tidak ditemukan';
-    header('location: login.php');
+if (!$user) {
+    $_SESSION['login_error'] = 'Email tidak ditemukan.';
+    header('Location: login.php');
     exit;
 }
-//cek password apakah benar
-if(!$password){
-    $_SESSION['login_eror'] = 'password salah';
-    header('location: login.php');
+
+// Karena kamu minta tanpa hash, bandingkan langsung.
+// (Reminder: ini insecure — sebaiknya pakai password_hash + password_verify)
+if ($password !== $user['password']) {
+    $_SESSION['login_error'] = 'Password salah.';
+    header('Location: login.php');
     exit;
 }
-//kalau benar akan disimpan disini
-$_SESSION['user_id']=$final['id'];
-$_SESSION['user_name']=$final['name'];
-$_SESSION['user_role']=$final['role'];
 
-//cek rolenya
-if($final['role'] === 'admin'){
-    header('location: login.php');
-}else{
-    header('location: login.php');
+// Login berhasil: simpan session
+$_SESSION['user_id'] = $user['id'];
+$_SESSION['user_name'] = $user['name'];
+$_SESSION['user_role'] = $user['role'];
+
+// Redirect berdasarkan role
+if ($user['role'] === 'admin') {
+    header('Location: admin/dashboard.php');
+} else {
+    // kalau mau buat halaman peserta nanti
+    header('Location: login.php'); // sementara balik ke login atau halaman peserta
 }
 exit;
-
-?>
